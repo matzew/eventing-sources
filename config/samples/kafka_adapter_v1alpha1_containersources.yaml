@@ -1,0 +1,11 @@
+apiVersion: sources.eventing.knative.dev/v1alpha1
+kind: ContainerSource
+metadata:
+  labels:
+    controller-tools.k8s.io: "1.0"
+  name: containersource-kafka-sample
+spec:
+  image: github.com/knative/eventing-sources/cmd/kafka/
+  args:
+   - '--bootstrapservers="localhost:9094"'
+   - '--topic=foo'

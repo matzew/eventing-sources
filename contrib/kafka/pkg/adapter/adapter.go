@@ -18,14 +18,14 @@ package kafka
 
 import (
 	"encoding/json"
+	"net/http"
 	"strconv"
 	"strings"
 
 	"github.com/Shopify/sarama"
 	"github.com/cloudevents/sdk-go/pkg/cloudevents"
-	"github.com/cloudevents/sdk-go/pkg/cloudevents/client"
+	cehttp "github.com/cloudevents/sdk-go/pkg/cloudevents/transport/http"
 	"github.com/cloudevents/sdk-go/pkg/cloudevents/types"
-	"github.com/knative/eventing-sources/pkg/kncloudevents"
 	"github.com/knative/pkg/logging"
 	"go.uber.org/zap"
 	"golang.org/x/net/context"
@@ -56,19 +56,13 @@ type Adapter struct {
 	ConsumerGroup    string
 	Net              AdapterNet
 	SinkURI          string
-	client           client.Client
+	client           *cehttp.Transport
 }
 
 // --------------------------------------------------------------------
 
 // ConsumerGroupHandler functions to define message consume and related logic.
 func (a *Adapter) Setup(_ sarama.ConsumerGroupSession) error {
-	if a.client == nil {
-		var err error
-		if a.client, err = kncloudevents.NewDefaultClient(a.SinkURI); err != nil {
-			return err
-		}
-	}
 	return nil
 }
 func (a *Adapter) Cleanup(_ sarama.ConsumerGroupSession) error { return nil }
@@ -78,15 +72,15 @@ func (a *Adapter) ConsumeClaim(sess sarama.ConsumerGroupSession, claim sarama.Co
 
 	for msg := range claim.Messages() {
 		logger.Info("Received: ", zap.Any("value", string(msg.Value)))
-		sess.MarkMessage(msg, "")
+		//sess.MarkMessage(msg, "")
 
 		// send and mark message if post was successful
-		// if err := a.postMessage(context.TODO(), msg); err == nil {
-		// 	sess.MarkMessage(msg, "")
-		// 	logger.Debug("Successfully sent event to sink")
-		// } else {
-		// 	logger.Error("Sending event to sink failed: ", zap.Error(err))
-		// }
+		if err := a.postMessage(context.TODO(), msg); err == nil {
+			sess.MarkMessage(msg, "")
+			logger.Debug("Successfully sent event to sink")
+		} else {
+			logger.Error("Sending event to sink failed: ", zap.Error(err))
+		}
 	}
 	return nil
 }
@@ -107,6 +101,13 @@ func (a *Adapter) Start(ctx context.Context, stopCh <-chan struct{}) error {
 	kafkaConfig.Net.SASL.User = a.Net.SASL.User
 	kafkaConfig.Net.SASL.Password = a.Net.SASL.Password
 	kafkaConfig.Net.TLS.Enable = a.Net.TLS.Enable
+
+	ceClient, err := makeStableClient(a.SinkURI)
+	if err != nil {
+		logger.Error("unexpected error creating CloudEvents client %v", err.Error())
+	}
+
+	a.client = ceClient
 
 	// Start with a client
 	client, err := sarama.NewClient(strings.Split(a.BootstrapServers, ","), kafkaConfig)
@@ -145,6 +146,24 @@ func (a *Adapter) Start(ctx context.Context, stopCh <-chan struct{}) error {
 			return nil
 		}
 	}
+}
+
+// An example of how to make a stable client under sustained
+// concurrency sending to a single host
+func makeStableClient(addr string) (*cehttp.Transport, error) {
+	ceClient, err := cehttp.New(cehttp.WithTarget(addr))
+	if err != nil {
+		return nil, err
+	}
+	netHTTPTransport := &http.Transport{
+		MaxIdleConnsPerHost: 1000,
+		MaxConnsPerHost:     5000,
+	}
+	netHTTPClient := &http.Client{
+		Transport: netHTTPTransport,
+	}
+	ceClient.Client = netHTTPClient
+	return ceClient, nil
 }
 
 func (a *Adapter) postMessage(ctx context.Context, msg *sarama.ConsumerMessage) error {

@@ -26,16 +26,9 @@ kind: KafkaSource
 metadata:
   name: kafka-source
 spec:
-  consumerGroup: KAFKA_CONSUMER_GROUP_NAME
-  bootstrapServers: KAFKA_BOOTSTRAP_SERVERS
-  topics: KAFKA_TOPICS
-  net:
-    sasl:
-      enable: KAFKA_SASL_ENABLE
-      user: KAFKA_SASL_USERNAME
-      password: KAFKA_SASL_PASSWORD
-    tls:
-      enable: KAFKA_TLS_ENABLE
+  consumerGroup: foossuoobar
+  bootstrapServers: my-cluster-kafka-bootstrap.kafka:9092
+  topics: my-cool-topic
   sink:
     apiVersion: serving.knative.dev/v1alpha1
     kind: Service

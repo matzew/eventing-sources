@@ -20,6 +20,7 @@ import (
 	"encoding/json"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/Shopify/sarama"
 	"github.com/cloudevents/sdk-go/pkg/cloudevents"
@@ -81,7 +82,7 @@ func (a *Adapter) ConsumeClaim(sess sarama.ConsumerGroupSession, claim sarama.Co
 
 		// send and mark message if post was successful
 		if err := a.postMessage(context.TODO(), msg); err == nil {
-			sess.MarkMessage(msg, "")
+			//sess.MarkMessage(msg, "")
 			logger.Debug("Successfully sent event to sink")
 		} else {
 			logger.Error("Sending event to sink failed: ", zap.Error(err))
@@ -101,6 +102,7 @@ func (a *Adapter) Start(ctx context.Context, stopCh <-chan struct{}) error {
 	kafkaConfig.Consumer.Offsets.Initial = sarama.OffsetOldest
 	kafkaConfig.Version = sarama.V2_0_0_0
 	kafkaConfig.Consumer.Return.Errors = true
+	kafkaConfig.Consumer.Offsets.CommitInterval = 2000 * time.Millisecond
 	kafkaConfig.Net.SASL.Enable = a.Net.SASL.Enable
 	kafkaConfig.Net.SASL.User = a.Net.SASL.User
 	kafkaConfig.Net.SASL.Password = a.Net.SASL.Password

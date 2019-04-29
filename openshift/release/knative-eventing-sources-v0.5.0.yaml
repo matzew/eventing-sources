@@ -2,13 +2,13 @@
 apiVersion: v1
 kind: Namespace
 metadata:
-  name: knative-sources
+  name: knative-eventing
 ---
 apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: controller-manager
-  namespace: knative-sources
+  namespace: knative-eventing
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
@@ -89,7 +89,7 @@ metadata:
 subjects:
 - kind: ServiceAccount
   name: controller-manager
-  namespace: knative-sources
+  namespace: knative-eventing
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
@@ -500,7 +500,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: controller
-  namespace: knative-sources
+  namespace: knative-eventing
   labels:
     control-plane: controller-manager
 spec:
@@ -513,7 +513,7 @@ apiVersion: apps/v1
 kind: StatefulSet
 metadata:
   name: controller-manager
-  namespace: knative-sources
+  namespace: knative-eventing
   labels:
     control-plane: controller-manager
 spec:
@@ -548,13 +548,13 @@ spec:
 apiVersion: v1
 kind: Namespace
 metadata:
-  name: knative-sources
+  name: knative-eventing
 ---
 apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: camel-controller-manager
-  namespace: knative-sources
+  namespace: knative-eventing
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
@@ -647,7 +647,7 @@ roleRef:
 subjects:
 - kind: ServiceAccount
   name: camel-controller-manager
-  namespace: knative-sources
+  namespace: knative-eventing
 ---
 apiVersion: apiextensions.k8s.io/v1beta1
 kind: CustomResourceDefinition
@@ -734,7 +734,7 @@ metadata:
   labels:
     control-plane: camel-controller-manager
   name: camel-controller-manager
-  namespace: knative-sources
+  namespace: knative-eventing
 spec:
   selector:
     control-plane: camel-controller-manager
@@ -747,7 +747,7 @@ metadata:
   labels:
     control-plane: camel-controller-manager
   name: camel-controller-manager
-  namespace: knative-sources
+  namespace: knative-eventing
 spec:
   selector:
     matchLabels:
@@ -775,7 +775,7 @@ apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: kafka-controller-manager
-  namespace: knative-sources
+  namespace: knative-eventing
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
@@ -841,7 +841,7 @@ metadata:
 subjects:
 - kind: ServiceAccount
   name: kafka-controller-manager
-  namespace: knative-sources
+  namespace: knative-eventing
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
@@ -920,7 +920,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: kafka-controller
-  namespace: knative-sources
+  namespace: knative-eventing
   labels:
     control-plane: kafka-controller-manager
 spec:
@@ -933,7 +933,7 @@ apiVersion: apps/v1
 kind: StatefulSet
 metadata:
   name: kafka-controller-manager
-  namespace: knative-sources
+  namespace: knative-eventing
   labels:
     control-plane: kafka-controller-manager
 spec:

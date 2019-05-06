@@ -24,6 +24,7 @@ import (
 	sourcesv1alpha1 "github.com/knative/eventing-sources/pkg/apis/sources/v1alpha1"
 	v1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -60,6 +61,16 @@ func TestMakeReceiveAdapter(t *testing.T) {
 				},
 				TLS: v1alpha1.KafkaSourceTLSSpec{
 					Enable: true,
+				},
+			},
+			Resources: v1alpha1.KafkaResourceSpec{
+				Requests: v1alpha1.KafkaRequestsSpec{
+					ResourceCPU:    "111m",
+					ResourceMemory: "111M",
+				},
+				Limits: v1alpha1.KafkaLimitsSpec{
+					ResourceCPU:    "22m",
+					ResourceMemory: "22M",
 				},
 			},
 		},
@@ -155,6 +166,16 @@ func TestMakeReceiveAdapter(t *testing.T) {
 											Key: "password",
 										},
 									},
+								},
+							},
+							Resources: corev1.ResourceRequirements{
+								Requests: corev1.ResourceList{
+									corev1.ResourceName("cpu"):    resource.MustParse("111m"),
+									corev1.ResourceName("memory"): resource.MustParse("111M"),
+								},
+								Limits: corev1.ResourceList{
+									corev1.ResourceName("cpu"):    resource.MustParse("22m"),
+									corev1.ResourceName("memory"): resource.MustParse("22M"),
 								},
 							},
 						},

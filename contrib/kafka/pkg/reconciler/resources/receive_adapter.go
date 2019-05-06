@@ -23,6 +23,7 @@ import (
 	"github.com/knative/eventing-sources/contrib/kafka/pkg/apis/sources/v1alpha1"
 	v1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -80,6 +81,22 @@ func MakeReceiveAdapter(args *ReceiveAdapterArgs) *v1.Deployment {
 			},
 		})
 	}
+	RequestResourceCPU, err := resource.ParseQuantity(args.Source.Spec.Resources.Requests.ResourceCPU)
+	if err != nil {
+		RequestResourceCPU = resource.MustParse("111m")
+	}
+	RequestResourceMemory, err := resource.ParseQuantity(args.Source.Spec.Resources.Requests.ResourceMemory)
+	if err != nil {
+		RequestResourceMemory = resource.MustParse("111M")
+	}
+	LimitResourceCPU, err := resource.ParseQuantity(args.Source.Spec.Resources.Limits.ResourceCPU)
+	if err != nil {
+		LimitResourceCPU = resource.MustParse("22m")
+	}
+	LimitResourceMemory, err := resource.ParseQuantity(args.Source.Spec.Resources.Limits.ResourceMemory)
+	if err != nil {
+		LimitResourceMemory = resource.MustParse("22M")
+	}
 
 	return &v1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
@@ -106,6 +123,16 @@ func MakeReceiveAdapter(args *ReceiveAdapterArgs) *v1.Deployment {
 							Name:  "receive-adapter",
 							Image: args.Image,
 							Env:   env,
+							Resources: corev1.ResourceRequirements{
+								Requests: corev1.ResourceList{
+									corev1.ResourceName("cpu"):    RequestResourceCPU,
+									corev1.ResourceName("memory"): RequestResourceMemory,
+								},
+								Limits: corev1.ResourceList{
+									corev1.ResourceName("cpu"):    LimitResourceCPU,
+									corev1.ResourceName("memory"): LimitResourceMemory,
+								},
+							},
 						},
 					},
 				},

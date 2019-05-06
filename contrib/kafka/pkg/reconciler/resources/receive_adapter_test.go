@@ -65,12 +65,12 @@ func TestMakeReceiveAdapter(t *testing.T) {
 			},
 			Resources: v1alpha1.KafkaResourceSpec{
 				Requests: v1alpha1.KafkaRequestsSpec{
-					ResourceCPU:    resource.MustParse("111m"),
-					ResourceMemory: resource.MustParse("111M"),
+					ResourceCPU:    "111m",
+					ResourceMemory: "111M",
 				},
 				Limits: v1alpha1.KafkaLimitsSpec{
-					ResourceCPU:    resource.MustParse("22m"),
-					ResourceMemory: resource.MustParse("22M"),
+					ResourceCPU:    "22m",
+					ResourceMemory: "22M",
 				},
 			},
 		},
@@ -177,6 +177,7 @@ func TestMakeReceiveAdapter(t *testing.T) {
 									corev1.ResourceCPU:    resource.MustParse("10m"),
 									corev1.ResourceMemory: resource.MustParse("20Mi"),
 								},
+							},
 						},
 					},
 				},

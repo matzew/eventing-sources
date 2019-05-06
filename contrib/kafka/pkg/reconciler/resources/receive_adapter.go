@@ -98,6 +98,17 @@ func MakeReceiveAdapter(args *ReceiveAdapterArgs) *v1.Deployment {
 		LimitResourceMemory = resource.MustParse("22M")
 	}
 
+	res := corev1.ResourceRequirements{
+		Limits: corev1.ResourceList{
+			corev1.ResourceCPU:    RequestResourceCPU,
+			corev1.ResourceMemory: RequestResourceMemory,
+		},
+		Requests: corev1.ResourceList{
+			corev1.ResourceCPU:    LimitResourceCPU,
+			corev1.ResourceMemory: LimitResourceMemory,
+		},
+	}
+
 	return &v1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace:    args.Source.Namespace,
@@ -120,19 +131,10 @@ func MakeReceiveAdapter(args *ReceiveAdapterArgs) *v1.Deployment {
 					ServiceAccountName: args.Source.Spec.ServiceAccountName,
 					Containers: []corev1.Container{
 						{
-							Name:  "receive-adapter",
-							Image: args.Image,
-							Env:   env,
-							Resources: corev1.ResourceRequirements{
-								Requests: corev1.ResourceList{
-									corev1.ResourceName("cpu"):    RequestResourceCPU,
-									corev1.ResourceName("memory"): RequestResourceMemory,
-								},
-								Limits: corev1.ResourceList{
-									corev1.ResourceName("cpu"):    LimitResourceCPU,
-									corev1.ResourceName("memory"): LimitResourceMemory,
-								},
-							},
+							Name:      "receive-adapter",
+							Image:     args.Image,
+							Env:       env,
+							Resources: res,
 						},
 					},
 				},

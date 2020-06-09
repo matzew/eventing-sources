@@ -23,7 +23,6 @@ import (
 	eventingduck "knative.dev/eventing/pkg/apis/duck/v1beta1"
 	"knative.dev/pkg/apis"
 
-	duckv1beta1 "knative.dev/pkg/apis/duck/v1beta1"
 	duckv1 "knative.dev/pkg/apis/duck/v1"
 )
 
@@ -68,7 +67,7 @@ type KafkaChannelStatus struct {
 	// inherits duck/v1beta1 Status, which currently provides:
 	// * ObservedGeneration - the 'Generation' of the Service that was last processed by the controller.
 	// * Conditions - the latest available observations of a resource's current state.
-	duckv1beta1.Status `json:",inline"`
+	duckv1.Status `json:",inline"`
 
 	// KafkaChannel is Addressable. It currently exposes the endpoint as a
 	// fully-qualified DNS name which will distribute traffic over the

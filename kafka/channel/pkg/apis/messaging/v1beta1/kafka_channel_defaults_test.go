@@ -18,6 +18,7 @@ package v1beta1
 
 import (
 	"context"
+	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"testing"
 
 	"knative.dev/eventing-contrib/kafka/channel/pkg/utils"
@@ -38,6 +39,11 @@ func TestKafkaChannelDefaults(t *testing.T) {
 		"nil spec": {
 			initial: KafkaChannel{},
 			expected: KafkaChannel{
+				ObjectMeta: v1.ObjectMeta{
+					Annotations: map[string]string{
+						"messaging.knative.dev/subscribable": "v1beta1",
+					},
+				},
 				Spec: KafkaChannelSpec{
 					NumPartitions:     utils.DefaultNumPartitions,
 					ReplicationFactor: utils.DefaultReplicationFactor,
@@ -46,11 +52,21 @@ func TestKafkaChannelDefaults(t *testing.T) {
 		},
 		"numPartitions not set": {
 			initial: KafkaChannel{
+				ObjectMeta: v1.ObjectMeta{
+					Annotations: map[string]string{
+						"messaging.knative.dev/subscribable": "v1beta1",
+					},
+				},
 				Spec: KafkaChannelSpec{
 					ReplicationFactor: testReplicationFactor,
 				},
 			},
 			expected: KafkaChannel{
+				ObjectMeta: v1.ObjectMeta{
+					Annotations: map[string]string{
+						"messaging.knative.dev/subscribable": "v1beta1",
+					},
+				},
 				Spec: KafkaChannelSpec{
 					NumPartitions:     utils.DefaultNumPartitions,
 					ReplicationFactor: testReplicationFactor,
@@ -59,11 +75,21 @@ func TestKafkaChannelDefaults(t *testing.T) {
 		},
 		"replicationFactor not set": {
 			initial: KafkaChannel{
+				ObjectMeta: v1.ObjectMeta{
+					Annotations: map[string]string{
+						"messaging.knative.dev/subscribable": "v1beta1",
+					},
+				},
 				Spec: KafkaChannelSpec{
 					NumPartitions: testNumPartitions,
 				},
 			},
 			expected: KafkaChannel{
+				ObjectMeta: v1.ObjectMeta{
+					Annotations: map[string]string{
+						"messaging.knative.dev/subscribable": "v1beta1",
+					},
+				},
 				Spec: KafkaChannelSpec{
 					NumPartitions:     testNumPartitions,
 					ReplicationFactor: utils.DefaultReplicationFactor,

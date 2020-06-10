@@ -253,31 +253,17 @@ func (r *Reconciler) reconcile(ctx context.Context, kc *v1beta1.KafkaChannel) er
 		return err
 	}
 
-	failedSubscriptionsv1beta1, err := r.kafkaDispatcher.UpdateKafkaConsumers(config)
+	failedSubscriptions, err := r.kafkaDispatcher.UpdateKafkaConsumers(config)
 	if err != nil {
 		logging.FromContext(ctx).Error("Error updating kafka consumers in dispatcher")
 		return err
 	}
-	failedSubscriptionsv1alpha1 := make(map[eventingduck.SubscriberSpec]error, len(failedSubscriptionsv1beta1))
-	for k, v := range failedSubscriptionsv1beta1 {
-		newSub := eventingduck.SubscriberSpec{}
-		newSub.ConvertFrom(context.TODO(), k)
-		failedSubscriptionsv1alpha1[newSub] = v
-	}
-	kc.Status.SubscribableStatus = r.createSubscribableStatus(kc.Spec.Subscribers, failedSubscriptionsv1alpha1)
-	if len(failedSubscriptionsv1alpha1) > 0 {
-		logging.FromContext(ctx).Error("Some kafka subscriptions failed to subscribe")
-		return fmt.Errorf("Some kafka subscriptions failed to subscribe")
-	}
-	return nil
-}
 
-func (r *Reconciler) createSubscribableStatus(subscribable *eventingduck.Subscribable, failedSubscriptions map[eventingduck.SubscriberSpec]error) eventingduck.SubscribableStatus {
-	if subscribable == nil {
-		return eventingduck.SubscribableStatus{}
-	}
-	subscriberStatus := make([]eventingduck.SubscriberStatus, 0)
-	for _, sub := range subscribable.Spec.Subscribers {
+	//kc.Status.SubscribableStatus = r.createSubscribableStatus(kc.Spec.Subscribers, failedSubscriptions)
+//	kc.Status.Subscribers = make([]eventingduck.SubscriberStatus, 0)
+//	subscriberStatus := make([]eventingduck.SubscriberStatus, 0)
+	kc.Status.Subscribers = make([]eventingduck.SubscriberStatus, 0)
+	for _, sub := range kc.Spec.Subscribers {
 		status := eventingduck.SubscriberStatus{
 			UID:                sub.UID,
 			ObservedGeneration: sub.Generation,
@@ -287,11 +273,13 @@ func (r *Reconciler) createSubscribableStatus(subscribable *eventingduck.Subscri
 			status.Ready = corev1.ConditionFalse
 			status.Message = err.Error()
 		}
-		subscriberStatus = append(subscriberStatus, status)
+		kc.Status.Subscribers = append(kc.Status.Subscribers, status)
 	}
-	return eventingduck.SubscribableStatus{
-		Subscribers: subscriberStatus,
+	if len(failedSubscriptions) > 0 {
+		logging.FromContext(ctx).Error("Some kafka subscriptions failed to subscribe")
+		return fmt.Errorf("Some kafka subscriptions failed to subscribe")
 	}
+	return nil
 }
 
 // newConfigFromKafkaChannels creates a new Config from the list of kafka channels.

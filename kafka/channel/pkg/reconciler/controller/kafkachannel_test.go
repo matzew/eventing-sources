@@ -19,7 +19,6 @@ package controller
 import (
 	"context"
 	"fmt"
-	"knative.dev/eventing-contrib/kafka/channel/pkg/apis/messaging/v1alpha1"
 	"testing"
 
 	"github.com/Shopify/sarama"
@@ -596,7 +595,7 @@ func makeService() *corev1.Service {
 	return resources.MakeDispatcherService(testNS)
 }
 
-func makeChannelService(nc *v1alpha1.KafkaChannel) *corev1.Service {
+func makeChannelService(nc *v1beta1.KafkaChannel) *corev1.Service {
 	return &corev1.Service{
 		TypeMeta: metav1.TypeMeta{
 			APIVersion: "v1",

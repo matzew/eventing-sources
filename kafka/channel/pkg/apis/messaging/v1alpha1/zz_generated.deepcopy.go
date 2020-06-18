@@ -95,6 +95,11 @@ func (in *KafkaChannelSpec) DeepCopyInto(out *KafkaChannelSpec) {
 		*out = new(duckv1alpha1.Subscribable)
 		(*in).DeepCopyInto(*out)
 	}
+	if in.Delivery != nil {
+		in, out := &in.Delivery, &out.Delivery
+		*out = new(v1beta1.DeliverySpec)
+		(*in).DeepCopyInto(*out)
+	}
 	return
 }
 
@@ -114,11 +119,6 @@ func (in *KafkaChannelStatus) DeepCopyInto(out *KafkaChannelStatus) {
 	in.Status.DeepCopyInto(&out.Status)
 	in.AddressStatus.DeepCopyInto(&out.AddressStatus)
 	in.SubscribableTypeStatus.DeepCopyInto(&out.SubscribableTypeStatus)
-	if in.Delivery != nil {
-		in, out := &in.Delivery, &out.Delivery
-		*out = new(v1beta1.DeliverySpec)
-		(*in).DeepCopyInto(*out)
-	}
 	return
 }
 

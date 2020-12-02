@@ -231,6 +231,24 @@ function install_knative_kafka_channel(){
   wait_until_pods_running $EVENTING_NAMESPACE || return 1
 }
 
+function install_knative_kafka_channel_tls(){
+  header "Installing Knative Kafka Channel"
+
+  RELEASE_YAML="openshift/release/knative-eventing-kafka-channel-ci-tls.yaml"
+
+  sed -i -e "s|registry.svc.ci.openshift.org/openshift/knative-.*:knative-eventing-sources-kafka-channel-controller|${IMAGE_FORMAT//\$\{component\}/knative-eventing-sources-kafka-channel-controller}|g" ${RELEASE_YAML}
+  sed -i -e "s|registry.svc.ci.openshift.org/openshift/knative-.*:knative-eventing-sources-kafka-channel-dispatcher|${IMAGE_FORMAT//\$\{component\}/knative-eventing-sources-kafka-channel-dispatcher}|g" ${RELEASE_YAML}
+  sed -i -e "s|registry.svc.ci.openshift.org/openshift/knative-.*:knative-eventing-sources-kafka-channel-webhook|${IMAGE_FORMAT//\$\{component\}/knative-eventing-sources-kafka-channel-webhook}|g"       ${RELEASE_YAML}
+
+  cat ${RELEASE_YAML} \
+  | sed "s/REPLACE_WITH_CLUSTER_URL/${KAFKA_TLS_CLUSTER_URL}/" \
+  | oc apply --filename -
+
+  wait_until_pods_running $EVENTING_NAMESPACE || return 1
+}
+
+
+
 function install_knative_kafka_source(){
   header "Installing Knative Kafka Source"
 
@@ -268,8 +286,6 @@ function uninstall_knative_kafka_source(){
 
 function run_e2e_tests(){
 
-  install_knative_kafka || return 1
-
   oc get ns ${TEST_EVENTING_NAMESPACE} 2>/dev/null || TEST_EVENTING_NAMESPACE="knative-eventing"
   sed "s/namespace: ${KNATIVE_DEFAULT_NAMESPACE}/namespace: ${TEST_EVENTING_NAMESPACE}/g" ${CONFIG_TRACING_CONFIG} | oc replace -f -
   local test_name="${1:-}"
@@ -286,18 +302,11 @@ function run_e2e_tests(){
     "$run_command" \
     $common_opts --dockerrepo "quay.io/openshift-knative" --tag "v0.18" || failed=$?
 
-  uninstall_knative_kafka || return 1
-
   return $failed
 }
 
-function run_e2e_tls_tests(){
-  header "Testing the consolidated channel with TLS"
-  # Set the URL to the TLS listeners config
-  cp ${KAFKA_TLS_CONFIG} "${KAFKA_CRD_CONFIG_TEMPLATE_DIR}/configmaps/kafka-config.yaml"
-  KAFKA_CLUSTER_URL=${KAFKA_TLS_CLUSTER_URL}
-
-  install_knative_kafka_channel || return 1
+function run_e2e_auth_tests(){
+  header "Testing the consolidated channel with TLS/SASL"
 
   oc get ns ${TEST_EVENTING_NAMESPACE} 2>/dev/null || TEST_EVENTING_NAMESPACE="knative-eventing"
   sed "s/namespace: ${KNATIVE_DEFAULT_NAMESPACE}/namespace: ${TEST_EVENTING_NAMESPACE}/g" ${CONFIG_TRACING_CONFIG} | oc replace -f -
@@ -314,8 +323,6 @@ function run_e2e_tls_tests(){
   go_test_e2e -tags=e2e -timeout=90m -parallel=12 ./test/e2e \
     "$run_command" \
     $common_opts --dockerrepo "quay.io/openshift-knative" --tag "v0.18" || failed=$?
-
-  uninstall_knative_kafka_channel || return 1
 
   return $failed
 }

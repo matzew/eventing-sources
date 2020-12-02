@@ -268,6 +268,8 @@ function uninstall_knative_kafka_source(){
 
 function run_e2e_tests(){
 
+  install_knative_kafka || return 1
+
   oc get ns ${TEST_EVENTING_NAMESPACE} 2>/dev/null || TEST_EVENTING_NAMESPACE="knative-eventing"
   sed "s/namespace: ${KNATIVE_DEFAULT_NAMESPACE}/namespace: ${TEST_EVENTING_NAMESPACE}/g" ${CONFIG_TRACING_CONFIG} | oc replace -f -
   local test_name="${1:-}"
@@ -283,6 +285,8 @@ function run_e2e_tests(){
   go_test_e2e -tags=e2e,source -timeout=90m -parallel=12 ./test/e2e \
     "$run_command" \
     $common_opts --dockerrepo "quay.io/openshift-knative" --tag "v0.18" || failed=$?
+
+  uninstall_knative_kafka || return 1
 
   return $failed
 }

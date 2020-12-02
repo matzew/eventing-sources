@@ -19,7 +19,7 @@ failed=0
 
 (( !failed )) && install_knative_eventing || failed=1
 
-(( !failed )) && install_knative_kafka || failed=1
+#(( !failed )) && install_knative_kafka || failed=1
 
 (( !failed )) && install_tracing || failed=1
 
@@ -27,7 +27,7 @@ failed=0
 
 (( !failed )) && run_e2e_tests || failed=1
 
-(( !failed )) && uinstall_knative_kafka || failed=1
+#(( !failed )) && uinstall_knative_kafka || failed=1
 
 #(( !failed )) && run_e2e_tls_tests || failed=1
 
